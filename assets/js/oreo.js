@@ -6,6 +6,7 @@ var messages = {
             r: "Re | re",
             and: "-"
         },
+        tooltip: "Keyboard shortcuts: <br>o/r : Input 'O' or 'RE'<br>-/Space : Input Space<br>Enter : Generate<br>Backspace : Back",
         input: {
             meta: "I'd like:",
             placeholder: "Oreo...",
@@ -19,15 +20,17 @@ var messages = {
         output: {
             meta: "Here's your",
             save: "Save Image",
+            show: "Show Image",
             back: "Back"
         }
     },
-    zh_CN: {
+    zh_cn: {
         basic: {
             o: "奥",
             r: "利",
             and: "与"
         },
+        tooltip: "键盘快捷键: <br>o/r : 输入奥/利<br>-/空格 : 输入与<br>回车 : 生成<br>退格 : 返回",
         input: {
             meta: "我想要：",
             placeholder: "奥利奥...",
@@ -41,6 +44,7 @@ var messages = {
         output: {
             meta: "這是你的",
             save: "保存图片",
+            show: "查看图片",
             back: "返回"
         }
     },
@@ -50,6 +54,7 @@ var messages = {
             r: "レ",
             and: "と"
         },
+        tooltip: "キーボード・ショートカット: <br>o/r/-/Space : 編集する<br>Enter : 実行<br>Backspace : 元に戻す",
         input: {
             meta: "私は...したい",
             placeholder: "オレオ...",
@@ -63,6 +68,7 @@ var messages = {
         output: {
             meta: "結果",
             save: "画像を保存する",
+            show: "写真を表示",
             back: "元に戻す"
         }
     }
@@ -70,11 +76,15 @@ var messages = {
 
 // Set Language
 var lang = "";
-if (localStorage.getItem('lang')) {
+
+if (location.hash.length > 1) {
+    lang = location.hash.substring(1);
+    localStorage.lang =  lang;
+} else if (localStorage.getItem('lang')) {
     lang = localStorage.getItem('lang');
 } else {
-    localStorage.lang = "zh_CN";
-    lang = "zh_CN";
+    localStorage.lang = "zh_cn";
+    lang = "zh_cn";
 }
 
 var i18n = new VueI18n({
@@ -87,7 +97,7 @@ var app = new Vue({
     i18n,
     data: {
         languages: {
-            "中": "zh_CN",
+            "中": "zh_cn",
             "En": "en",
             "日": "ja"
         },
@@ -121,11 +131,19 @@ var app = new Vue({
     },
     created: function () {
         var that = this;
+        if (this.isIOS()) {
+            document.getElementById("download_").style.display = "none";
+        } else {
+            document.getElementById("show_").style.display = "none";
+        }
         var sources = {
             O: "assets/image/O.png",
             R: "assets/image/R.png",
             Ob: "assets/image/Ob.png"
         };
+        // Set background color
+        var bgColorArr = ['#caad9f', '#f0c869', '#6abce0', '#9ac4bd', '#fad0c4', '#9ec6cd'];
+        document.body.style.backgroundColor = bgColorArr[Math.floor((Math.random()*bgColorArr.length))];
         this.loadImages(sources, function () {
             setTimeout(() => {
                 that.loading = false;
@@ -151,6 +169,37 @@ var app = new Vue({
                     }
                 }
                 cacheImages[imgItem].src = sources[imgItem];
+            }
+        },
+        keyEvent: function (ev) {
+            console.log(ev.keyCode);
+            if (!this.loading && !this.output) {
+                // input Page
+                switch (ev.keyCode) {
+                    case 79:
+                        this.strAdd('o');
+                        break;
+                    case 82:
+                        this.strAdd('r');
+                        break;
+                    case 8:
+                        this.strAdd('-1');
+                        break;
+                    case 32:
+                    case 189:
+                        this.strAdd('-');
+                        break;
+                    case 13:
+                        this.generateImage();
+                        break;
+                    default:
+                        break;
+                }
+            } else if (!this.loading && this.output) {
+                // output Page
+                if (ev.keyCode == 8) {
+                    this.backToInput();
+                }
             }
         },
         strAdd: function (str) {
@@ -234,11 +283,19 @@ var app = new Vue({
             a.download = this.oreoStr + ".png";
             a.dispatchEvent(new MouseEvent('click', {}))
         },
+        showImage: function () {
+            window.open(this.imgUrl);
+        },
         backToInput: function () {
             this.output = false;
             this.oreoStr = "";
             this.oreoArr = [];
             this.imgUrl = "";
+        },
+        isIOS: function(){
+            var u = navigator.userAgent;
+            var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
+            return isiOS;
         }
     }
 })

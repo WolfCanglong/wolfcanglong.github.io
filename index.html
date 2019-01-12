@@ -7,18 +7,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="shortcut icon" href="/favicon.ico"/>
-    <meta name="theme-color" content="#caad9f">
     <link rel="stylesheet" href="assets/css/oreo.css">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-119765423-2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-119765423-2');
+    </script>
+
 </head>
 
 <body>
-    <div id="app">
+    <div id="app" tabindex="-1" @keyup="keyEvent($event)">
         <transition name="bounce">
             <div class="content-loading" v-show="loading">
                 <img class="loading-img" src="assets/image/oreo.png" alt="">
             </div>
         </transition>
         <div class="container" v-show="!loading && !output">
+            <div v-show="$t('tooltip') != 'tooltip'" class="icon tooltip" src="assets/image/tip.png" alt="tip">
+            <span class="tooltiptext" v-html="$t('tooltip')"></span>
+            </div>
             <div class="title">
                 <div class="meta" v-t="'input.meta'"></div>
                 <div v-show="oreoStr">
@@ -44,7 +56,8 @@
             <div class="output-image">
                 <canvas width="240px" height="500px" ref="oreo_canvas" id="oreo_canvas"></canvas>
             </div>
-            <div @click="downloadImage" class="btn" v-t="'output.save'"></div>
+            <div v-if="isIOS" @click="showImage" class="btn" v-t="'output.show'"></div>
+            <div v-else @click="downloadImage" class="btn" v-t="'output.save'"></div>
             <div @click="backToInput" class="btn" v-t="'output.back'"></div>
         </div>
         <footer class="footer" v-show="!loading && !output">
